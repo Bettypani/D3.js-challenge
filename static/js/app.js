@@ -1,97 +1,105 @@
-//URL of the json data to the fetched
+// URL of the JSON data to be fetched
 const url = "https://static.bc-edx.com/data/dl-1-2/m14/lms/starter/samples.json";
 
-//Fetching data from the URL and storing the promise in dataPromise variable
-const dataPromise = d3.json(url);
+// Fetching data from the URL and storing the promise in dataPromise variable
+let dataPromise = d3.json(url);
 console.log("Data Promise: ", dataPromise);
 
-//Initialize globaldata empty array
+// Initialize globaldata empty array
 var globaldata = [];
 
-//Making an API call and append data onto globaldata variable
-d3.json(url).then(function(x) {
-    console.log(x);
-    globaldata.push(x);
-    create_menu(x.names);
+//Fetches data and logs the data to the console and pushes data to globaldata
+d3.json(url).then(function(data) {
+  console.log(data);
+  globaldata.push(data);
+  createMenu(data.names);
 });
 
-//Function to create a dropdown menu using the names data
-function create_menu(names){
-d3.select("select")
-  .selectAll('option')
-	.data(names).enter()
-	.append('option')
-		.text(function (d) { return d; })
-        .attr("value", function (d) { return d; });
+
+//Function to populate table with sample number data
+function buildMetadata(sample) {
+  d3.json("https://static.bc-edx.com/data/dl-1-2/m14/lms/starter/samples.json").then((data) => {
+    let metadata = data.metadata;
+    // Filter the data for the object with the desired sample number
+    let resultArray = metadata.filter(sampleObj => sampleObj.id == sample);
+    let result = resultArray[0];
+    // Use d3 to select the panel with id of #sample-metadata
+    let PANEL = d3.select("#sample-metadata");
+    // Use `.html("") to clear any existing metadata
+    PANEL.html("");
+    for (key in result){
+      PANEL.append("h6").text(`${key.toUpperCase()}: ${result[key]}`);
+    };
+  });
 }
 
-//Function to handle changes when a new subject is selected from the dropdown
+// Function to create a dropdown menu using the names data
+function createMenu(names){
+    d3.select("#selDataset")
+      .selectAll('option')
+      .data(names)
+      .enter()
+      .append('option')
+      .text(function (d) { return d; })
+      .attr("value", function (d) { return d; });
+}
+
+// Function to handle changes when a new subject is selected from the dropdown
 function changedSubjectId(subjectId){
-    console.log(subjectId)
-    updatePlotly(subjectId)
-};
-
-
-// Call updatePlotly() when a change takes place to the DOM
-d3.selectAll("#selDataset").on("change", updatePlotly);
+    console.log(subjectId);
+    updatePlotly(subjectId);
+    buildMetadata(subjectId);
+}
 
 // This function is called when a dropdown menu item is selected
 function updatePlotly(subjectId) {
-
     console.log(globaldata[0]);
-   
 
-  let  samples = globaldata[0].samples;
-
-  let  sample = samples.filter(d => d.id == subjectId);
-
+    let samples = globaldata[0].samples;
+    let sample = samples.filter(d => d.id === subjectId)[0];
     console.log(sample);
 
-    let xdata = sample[0].otu_ids.slice(0,10);
+    let xdata = sample.otu_ids.slice(0,10);
     let xdata_otu = xdata.map(d => `OTU ${d}`);
+    
 
-    //Trace for plot
+    // Trace for the bar plot
     let trace = {
         y: xdata_otu,
-        x: sample[0].sample_values.slice(0,10).reverse(),
+        x: sample.sample_values.slice(0,10).reverse(),
         type: "bar",
         orientation: "h"
     };
 
-  //Data trace array
-  let data = [trace];
+    let data = [trace];
 
-  //Apply layout
-  let layout = {
-    title: "Top 10 OTUs"
-  };
-   //Render the plot
-   Plotly.newPlot("bar", data, layout);
-  
+    //Add a title
+    let layout = {
+        title: "Top 10 OTUs"
+    };
+   
+    //Display the plot 
+    Plotly.newPlot("bar", data, layout);
 
- // Bubble chart
-   let bubbleTrace = {
-    x: sample[0].otu_ids,
-    y: sample[0].sample_values,
-    text: sample[0].otu_labels,
-    mode: 'markers',
-    marker: {
-        size: sample[0].sample_values,
-        color: sample[0].otu_ids
-    }
-};
+    // Bubble chart
+    let bubbleTrace = {
+        x: sample.otu_ids,
+        y: sample.sample_values,
+        text: sample.otu_labels,
+        mode: 'markers',
+        marker: {
+            size: sample.sample_values,
+            color: sample.otu_ids
+        }
+    };
 
-let bubbleData = [bubbleTrace];
+    let bubbleData = [bubbleTrace];
 
-let bubbleLayout = {
-    title: 'Sample Values and OTU IDs',
-    height: 600,
-    width: 800
-};
+    //Add a title
+    let bubbleLayout = {
+        title: 'Sample Values and OTU IDs'
+    };
+    //Display the plot
+    Plotly.newPlot("bubble", bubbleData, bubbleLayout);
 
-Plotly.newPlot("bubble", bubbleData, bubbleLayout);
-
-
-init();
-
-};
+}
