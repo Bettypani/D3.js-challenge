@@ -2,14 +2,14 @@
 
 Welcome to the Belly Button Biodiversity Dashboard! This interactive dashboard allows you to explore the microbial species (OTUs) present in human navels. The dataset used for this dashboard catalogs the microbes found in various individuals' navels, revealing both common and rare species.
 
-#Before You Begin
+Before You Begin
 Before getting started, make sure to follow these initial steps:
 
 Clone the Repository: Clone the provided repository to your computer.
 Push Changes to GitHub: Push any changes made to the repository to your GitHub account.
 Deploy Repository to GitHub Pages: Deploy the repository to GitHub Pages to make the dashboard accessible online.
 
-#Instructions
+Instructions
 To complete this assignment, follow the steps outlined below:
 
 Data Retrieval: Use the D3 library to read the dataset from samples.json.
